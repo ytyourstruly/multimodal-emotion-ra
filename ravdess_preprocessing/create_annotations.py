@@ -1,16 +1,43 @@
 # -*- coding: utf-8 -*-
-
+import random
+import numpy as np
 import os
-root = '/lustre/scratch/chumache/RAVDESS_or/'
+root = 'd:/Yeskendir_files/RAVDESS_1/RAVDESS'
 
-n_folds=1
-folds = [[[0,1,2,3],[4,5,6,7],[8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]]]
+n_folds=5
+indices = list(range(24))
+
+# shuffle them
+random.shuffle(indices)
+
+# split into 5 folds (sizes will be 5,5,5,5,4)
+folds_raw = np.array_split(indices, 5)
+folds_raw = [list(f) for f in folds_raw]
+
+# create final structure: [ [train],[val],[test] ] repeated for 5 folds
+folds = []
+
+for i in range(5):
+    test_fold = folds_raw[i]
+    val_fold = folds_raw[(i + 1) % 5]        # next fold cyclically
+    train_fold = []                          # all other folds
+
+    for j in range(5):
+        if j != i and j != (i + 1) % 5:
+            train_fold.extend(folds_raw[j])
+
+    folds.append([test_fold, val_fold, train_fold])
+
+print("folds = [")
+for f in folds:
+    print("   ", f, ",")
+print("]")
 for fold in range(n_folds):
         fold_ids = folds[fold]
         test_ids, val_ids, train_ids = fold_ids
 	
-        #annotation_file = 'annotations_croppad_fold'+str(fold+1)+'.txt'
-        annotation_file = 'annotations.txt'
+        annotation_file = 'annotations_croppad_fold'+str(fold+1)+'.txt'
+        # annotation_file = 'annotations.txt'
 	
         for i,actor in enumerate(os.listdir(root)):
             for video in os.listdir(os.path.join(root, actor)):

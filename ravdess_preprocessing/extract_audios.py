@@ -9,7 +9,7 @@ import numpy as np
 ##this file preprocess audio files to ensure they are of the same length. if length is less than 3.6 seconds, it is padded with zeros in the end. otherwise, it is equally cropped from 
 ##both sides
 
-root = '/lustre/scratch/chumache/RAVDESS_or/'
+root = 'd:/Yeskendir_files/RAVDESS_1/RAVDESS'
 target_time = 3.6 #sec
 for actor in os.listdir(root):
     for audiofile in os.listdir(os.path.join(root, actor)):

@@ -261,7 +261,8 @@ class MultiModalCNN(nn.Module):
         
         x_audio = self.audio_model.forward_stage2(x_audio)       
         x_visual = self.visual_model.forward_stage2(x_visual)
-
+        # print(x_audio.shape)
+        # print(x_visual.shape)
         audio_pooled = x_audio.mean([-1]) #mean accross temporal dimension
         video_pooled = x_visual.mean([-1])
         

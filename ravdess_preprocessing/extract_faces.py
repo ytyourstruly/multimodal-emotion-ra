@@ -18,7 +18,7 @@ save_length = 3.6 #seconds
 save_avi = True
 
 failed_videos = []
-root = '/lustre/scratch/chumache/RAVDESS_or/'
+root = 'd:/Yeskendir_files/RAVDESS_1/RAVDESS'
 
 select_distributed = lambda m, n: [i*n//m + n//(2*m) for i in range(m)]
 n_processed = 0

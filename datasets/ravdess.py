@@ -27,9 +27,11 @@ def load_audio(audiofile, sr):
     return y, sr
 
 def get_mfccs(y, sr):
-    mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=10)
+    mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=40, res_type='kaiser_fast')
     return mfcc
-
+def get_mels(y, sr):
+    mfcc = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=128)
+    return mfcc
 def make_dataset(subset, annotation_path):
     with open(annotation_path, 'r') as f:
         annots = f.readlines()
@@ -45,7 +47,6 @@ def make_dataset(subset, annotation_path):
                   'label': int(label)-1}
         dataset.append(sample)
     return dataset 
-       
 
 class RAVDESS(data.Dataset):
     def __init__(self,                 
@@ -83,9 +84,9 @@ class RAVDESS(data.Dataset):
                  self.audio_transform.randomize_parameters()
                  y = self.audio_transform(y)     
                  
-            mfcc = get_mfccs(y, sr)            
-            audio_features = mfcc 
-
+            mfcc = get_mfccs(y, sr)             
+            mel = get_mels(y,sr)
+            audio_features = mfcc + mel
             if self.data_type == 'audio':
                 return audio_features, target
         if self.data_type == 'audiovisual':

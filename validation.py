@@ -36,14 +36,15 @@ def val_epoch_multimodal(epoch, data_loader, model, criterion, opt, modality='bo
         inputs_audio = inputs_audio.to(opt.device)
         inputs_visual = inputs_visual.to(opt.device)
         gender = gender.to(opt.device)
-        if opt.onlymale == 1:
-            male_mask = gender == 0
-            inputs_audio = inputs_audio[male_mask]
-            inputs_visual = inputs_visual[male_mask]
-            targets = targets[male_mask]
-            gender = gender[male_mask]
-        if inputs_audio.shape[0] == 0:
-            continue
+        gender = gender.repeat_interleave(opt.sample_duration)
+        # if opt.onlymale == 1:
+        #     male_mask = gender == 0
+        #     inputs_audio = inputs_audio[male_mask]
+        #     inputs_visual = inputs_visual[male_mask]
+        #     targets = targets[male_mask]
+        #     gender = gender[male_mask]
+        # if inputs_audio.shape[0] == 0:
+        #     continue
         with torch.no_grad():
             outputs = model(inputs_audio, inputs_visual, gender)
             _, preds = outputs.max(1)

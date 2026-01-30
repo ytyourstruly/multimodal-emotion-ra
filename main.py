@@ -24,7 +24,7 @@ from sklearn.metrics import confusion_matrix, classification_report
 from inference import TrainingAlignedInference
 
 # Import CREMA-D preprocessor
-from preprocess_cremad import prepare_cremad_kfold_annotations, verify_cremad_files
+# from cremad_preprocessing import prepare_cremad_kfold_annotations, verify_cremad_files
 
 
 def setup_cremad_annotations(cremad_root, annotation_dir, n_folds=5):
@@ -42,13 +42,13 @@ def setup_cremad_annotations(cremad_root, annotation_dir, n_folds=5):
         print(f"CREMA-D annotations already exist in {annotation_dir}")
         return annotation_paths
     
-    # Create annotations
-    print(f"Creating CREMA-D annotations...")
-    return prepare_cremad_kfold_annotations(
-        cremad_root, 
-        annotation_dir, 
-        n_folds=n_folds
-    )
+    # # TODO: implement
+    # print(f"Creating CREMA-D annotations...")
+    # return prepare_cremad_kfold_annotations(
+    #     cremad_root, 
+    #     annotation_dir, 
+    #     n_folds=n_folds
+    # )
 
 
 def get_emotion_labels(dataset_name):

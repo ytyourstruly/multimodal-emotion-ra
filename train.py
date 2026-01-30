@@ -80,14 +80,14 @@ def train_epoch_multimodal(epoch, data_loader, model, criterion, optimizer, opt)
         audio_inputs = Variable(audio_inputs)
         visual_inputs = Variable(visual_inputs)
         targets = Variable(targets)
-        if opt.onlymale == 1:
-            male_mask = gender == 0
-            audio_inputs = audio_inputs[male_mask]
-            visual_inputs = visual_inputs[male_mask]
-            targets = targets[male_mask]
-            gender = gender[male_mask]
-        if audio_inputs.shape[0] == 0:
-            continue
+        # if opt.onlymale == 1:
+        #     male_mask = gender == 0
+        #     audio_inputs = audio_inputs[male_mask]
+        #     visual_inputs = visual_inputs[male_mask]
+        #     targets = targets[male_mask]
+        #     gender = gender[male_mask]
+        # if audio_inputs.shape[0] == 0:
+        #     continue
         outputs = model(audio_inputs, visual_inputs, gender)
         loss = criterion(outputs, targets)
 

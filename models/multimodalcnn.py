@@ -167,7 +167,7 @@ class MultiModalCNN(nn.Module):
         self.visual_model = EfficientFaceTemporal([4, 8, 4], [29, 116, 232, 464, 1024], num_classes, seq_length)
 
         init_feature_extractor(self.visual_model, pretr_ef)
-        self.gender_emb = nn.Embedding(2,16)                   
+        self.gender_emb = nn.Embedding(embedding_dim=16)                   
         e_dim = 128
         input_dim_video = 128
         input_dim_audio = 128
@@ -266,6 +266,11 @@ class MultiModalCNN(nn.Module):
         audio_pooled = x_audio.mean([-1]) #mean accross temporal dimension
         video_pooled = x_visual.mean([-1])
         gender_emb = self.gender_emb(gender)
+        print("Gender:")
+        print(gender)
+        print("Gender embedding")
+        print(gender_emb)
+        # print(audio_pooled)
         x = torch.cat((audio_pooled, video_pooled,gender_emb), dim=1)
         
         x1 = self.classifier_1(x)

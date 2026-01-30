@@ -167,7 +167,7 @@ class MultiModalCNN(nn.Module):
         self.visual_model = EfficientFaceTemporal([4, 8, 4], [29, 116, 232, 464, 1024], num_classes, seq_length)
 
         init_feature_extractor(self.visual_model, pretr_ef)
-                           
+        self.gender_emb = nn.Embedding(2,16)                   
         e_dim = 128
         input_dim_video = 128
         input_dim_audio = 128
@@ -190,18 +190,18 @@ class MultiModalCNN(nn.Module):
 
             
         self.classifier_1 = nn.Sequential(
-                    nn.Linear(e_dim*2, num_classes),
+                    nn.Linear(e_dim*2 + 16, num_classes), # added gender embedding
                 )
         
             
 
-    def forward(self, x_audio, x_visual):
+    def forward(self, x_audio, x_visual, gender):
 
         if self.fusion == 'lt':
             return self.forward_transformer(x_audio, x_visual)
 
         elif self.fusion == 'ia':
-            return self.forward_feature_2(x_audio, x_visual)
+            return self.forward_feature_2(x_audio, x_visual, gender)
        
         elif self.fusion == 'it':
             return self.forward_feature_3(x_audio, x_visual)
@@ -235,7 +235,7 @@ class MultiModalCNN(nn.Module):
         x1 = self.classifier_1(x)
         return x1
     
-    def forward_feature_2(self, x_audio, x_visual):
+    def forward_feature_2(self, x_audio, x_visual, gender):
         x_audio = self.audio_model.forward_stage1(x_audio)
         x_visual = self.visual_model.forward_features(x_visual)
         x_visual = self.visual_model.forward_stage1(x_visual)
@@ -265,8 +265,8 @@ class MultiModalCNN(nn.Module):
         # print(x_visual.shape)
         audio_pooled = x_audio.mean([-1]) #mean accross temporal dimension
         video_pooled = x_visual.mean([-1])
-        
-        x = torch.cat((audio_pooled, video_pooled), dim=-1)
+        gender_emb = self.gender_emb(gender)
+        x = torch.cat((audio_pooled, video_pooled,gender_emb), dim=1)
         
         x1 = self.classifier_1(x)
         return x1

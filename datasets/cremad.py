@@ -98,7 +98,9 @@ def make_dataset(subset, annotation_path):
         dataset.append(sample)
     
     return dataset
-
+def get_gender_from_filename(filename):
+    actor_id = int(filename.split("_")[0])
+    return 0 if actor_id <= 1049 else 1  # 0=male, 1=female
 
 class CREMAD(data.Dataset):
     """
@@ -145,7 +147,9 @@ class CREMAD(data.Dataset):
     def __getitem__(self, index):
         """Get a sample from the dataset"""
         target = self.data[index]['label']
-        
+        filename = self.data[index]['filename']
+        gender = get_gender_from_filename(filename)
+        gender = torch.tensor(gender, dtype=torch.long)
         # Load video data
         if self.data_type == 'video' or self.data_type == 'audiovisual':
             path = self.data[index]['video_path']
@@ -191,7 +195,7 @@ class CREMAD(data.Dataset):
         
         # Return audiovisual data
         if self.data_type == 'audiovisual':
-            return audio_features, clip, target
+            return audio_features, clip, target, gender
 
     def __len__(self):
         return len(self.data)

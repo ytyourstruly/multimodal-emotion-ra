@@ -16,7 +16,7 @@ def parse_opts():
     parser.add_argument('--cremad_path', default='D:/Yeskendir_files/crema/crema-d-mirror',type=str,help='Root path to CREMA-D dataset')
     parser.add_argument('--model', default='multimodalcnn', type=str, help='')
     parser.add_argument('--num_heads', default=1, type=int, help='number of heads, in the paper 1 or 4')
-    
+    parser.add_argument('--onlymale', default = 1)
     parser.add_argument('--device', default='cuda', type=str, help='Specify the device to run. Defaults to cuda, fallsback to cpu')
     
     

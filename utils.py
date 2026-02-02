@@ -51,6 +51,31 @@ class Logger(object):
         self.logger.writerow(write_values)
         self.log_file.flush()
 
+def get_emotion_labels(dataset_name):
+    """
+    Get emotion labels for the dataset
+    """
+    if dataset_name == 'RAVDESS':
+        return [
+            "neutral", "calm", "happy", "sad",
+            "angry", "fearful", "disgust", "surprise"
+        ]
+    elif dataset_name == 'CREMAD':
+        # CREMA-D has 6 emotions, mapped to RAVDESS indices
+        # Note: indices 1 (calm) and 7 (surprise) are not used
+        return [
+            "neutral",    # 0
+            "calm",       # 1 (not in CREMA-D)
+            "happy",      # 2
+            "sad",        # 3
+            "angry",      # 4
+            "fearful",    # 5
+            "disgust",    # 6
+            "surprise"    # 7 (not in CREMA-D)
+        ]
+    else:
+        raise ValueError(f"Unknown dataset: {dataset_name}")
+
 def report(y_true, y_pred, emotion_labels):
     return classification_report(y_true, y_pred, target_names=emotion_labels, digits=2)
 

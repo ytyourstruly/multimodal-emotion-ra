@@ -7,6 +7,9 @@ import numbers
 import numpy as np
 import torch
 from PIL import Image
+import warnings
+warnings.filterwarnings("ignore")
+
 try:
     import accimage
 except ImportError:
@@ -71,7 +74,7 @@ class ToTensor(object):
         elif pic.mode == 'I;16':
             img = torch.from_numpy(np.array(pic, np.int16, copy=False))
         else:
-            img = torch.ByteTensor(torch.ByteStorage.from_buffer(pic.tobytes()))
+            img = torch.ByteTensor(torch.frombuffer(pic.tobytes(), dtype=torch.uint8))
         # PIL image mode: 1, L, P, I, F, RGB, YCbCr, RGBA, CMYK
         if pic.mode == 'YCbCr':
             nchannel = 3

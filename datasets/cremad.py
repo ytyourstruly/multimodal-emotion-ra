@@ -77,8 +77,8 @@ def make_dataset(subset, annotation_path):
         # video_path: .../VideoFlash/XXXX_YYY_EMO_ZZ.flv -> .../VideoFlash/XXXX_YYY_EMO_ZZ_facecroppad.npy
         # audio_path: .../AudioWAV/XXXX_YYY_EMO_ZZ.wav -> .../AudioWAV/XXXX_YYY_EMO_ZZ_croppad.wav
         
-        video_preprocessed = video_path.replace('.flv', '_facecroppad.npy')
-        audio_preprocessed = audio_path.replace('.wav', '_croppad.wav')
+        video_preprocessed = video_path
+        audio_preprocessed = audio_path
         
         # Check if preprocessed files exist
         if not os.path.exists(video_preprocessed):
@@ -93,14 +93,26 @@ def make_dataset(subset, annotation_path):
             'video_path': video_preprocessed,
             'audio_path': audio_preprocessed,
             'label': int(label) - 1,  # Convert to 0-indexed
-            'filename': os.path.basename(video_path).replace('.flv', '')
+            'gender': get_gender_from_filename(filename=os.path.basename(video_path))
         }
         dataset.append(sample)
     
     return dataset
+
+import pandas as pd
+
+# Load once at startup, not on every call
+demographics = pd.read_csv('/home/yeskendir/Downloads/crema-d-mirror-main/VideoDemographics.csv')
+GENDER_MAP = {
+    row['ActorID']: 0 if row['Sex'] == 'Male' else 1
+    for _, row in demographics.iterrows()
+}
+
 def get_gender_from_filename(filename):
     actor_id = int(filename.split("_")[0])
-    return 0 if actor_id <= 1049 else 1  # 0=male, 1=female
+    # if actor_id == 1001:
+    #     print("Debug: ActorID is 1001")
+    return GENDER_MAP[actor_id]  # 0=male, 1=female
 
 class CREMAD(data.Dataset):
     """
@@ -147,8 +159,7 @@ class CREMAD(data.Dataset):
     def __getitem__(self, index):
         """Get a sample from the dataset"""
         target = self.data[index]['label']
-        filename = self.data[index]['filename']
-        gender = get_gender_from_filename(filename)
+        gender = self.data[index]['gender']
         gender = torch.tensor(gender, dtype=torch.long)
         # Load video data
         if self.data_type == 'video' or self.data_type == 'audiovisual':

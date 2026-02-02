@@ -14,67 +14,16 @@ from opts import parse_opts
 from model import generate_model
 import transforms 
 from dataset import get_training_set, get_validation_set, get_test_set
-from utils import Logger, adjust_learning_rate, save_checkpoint, plot_confusion_matrix, report, save_csv_report, save_confusion_matrix
+from utils import Logger, adjust_learning_rate, save_checkpoint, plot_confusion_matrix, report, save_csv_report, save_confusion_matrix, get_emotion_labels
 from train import train_epoch
 from validation import val_epoch
 import time
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import confusion_matrix, classification_report
-from inference import TrainingAlignedInference
-
-# Import CREMA-D preprocessor
-from preprocess_cremad import prepare_cremad_kfold_annotations, verify_cremad_files
+# from inference import TrainingAlignedInference
 
 
-def setup_cremad_annotations(cremad_root, annotation_dir, n_folds=5):
-    """
-    Setup CREMA-D annotations if they don't exist
-    Returns list of annotation file paths
-    """
-    # Check if annotations already exist
-    annotation_paths = [
-        os.path.join(annotation_dir, f'annotations_fold{i+1}.txt')
-        for i in range(n_folds)
-    ]
-    
-    if all(os.path.exists(path) for path in annotation_paths):
-        print(f"CREMA-D annotations already exist in {annotation_dir}")
-        return annotation_paths
-    
-    # Create annotations
-    print(f"Creating CREMA-D annotations...")
-    return prepare_cremad_kfold_annotations(
-        cremad_root, 
-        annotation_dir, 
-        n_folds=n_folds
-    )
-
-
-def get_emotion_labels(dataset_name):
-    """
-    Get emotion labels for the dataset
-    """
-    if dataset_name == 'RAVDESS':
-        return [
-            "neutral", "calm", "happy", "sad",
-            "angry", "fearful", "disgust", "surprise"
-        ]
-    elif dataset_name == 'CREMAD':
-        # CREMA-D has 6 emotions, mapped to RAVDESS indices
-        # Note: indices 1 (calm) and 7 (surprise) are not used
-        return [
-            "neutral",    # 0
-            "calm",       # 1 (not in CREMA-D)
-            "happy",      # 2
-            "sad",        # 3
-            "angry",      # 4
-            "fearful",    # 5
-            "disgust",    # 6
-            "surprise"    # 7 (not in CREMA-D)
-        ]
-    else:
-        raise ValueError(f"Unknown dataset: {dataset_name}")
 
 
 if __name__ == '__main__':
@@ -91,25 +40,7 @@ if __name__ == '__main__':
         if not os.path.exists(opt.result_path):
             os.makedirs(opt.result_path)
         
-        # ========== CREMA-D SETUP ==========
-        if opt.dataset == 'CREMAD':
-            # Define CREMA-D paths
-            # Modify these paths according to your setup
-            cremad_root = opt.cremad_path if hasattr(opt, 'cremad_path') else 'D:/Datasets/CREMA-D'
-            cremad_annotation_dir = os.path.join(cremad_root, 'annotations')
-            
-            # Create annotations if they don't exist
-            try:
-                annotation_paths = setup_cremad_annotations(
-                    cremad_root, 
-                    cremad_annotation_dir, 
-                    n_folds=n_folds
-                )
-                print(f"CREMA-D annotations ready: {len(annotation_paths)} folds")
-            except Exception as e:
-                print(f"Error setting up CREMA-D annotations: {e}")
-                print("Please check your CREMA-D dataset path and structure")
-                exit(1)
+        # ========== CREMA-D SETUP ========== transferred to their own file handling
         
         opt.arch = '{}'.format(opt.model)  
         opt.store_name = '_'.join([opt.dataset, opt.model, str(opt.sample_duration)])
@@ -130,22 +61,14 @@ if __name__ == '__main__':
             
             # Set annotation path based on dataset
             if opt.dataset == 'RAVDESS':
-                opt.annotation_path = (
-                    'D:/Yeskendir_files/multimodal-emotion-recognition/ravdess_preprocessing/'
-                    'annotations_croppad_fold' + str(fold+1) + '.txt'
-                )
+                opt.annotation_path += '/annotations_croppad_fold' + str(fold+1) + '.txt'
             elif opt.dataset == 'CREMAD':
-                opt.annotation_path = os.path.join(
-                    cremad_annotation_dir,
-                    f'annotations_fold{fold+1}.txt'
-                )
+                opt.annotation_path += f'/annotations_croppad_fold{fold+1}.txt'
             
             print(f"Using annotation file: {opt.annotation_path}")
             print(opt)
             
-            # Save options
-            with open(os.path.join(opt.result_path, 'opts'+str(time.time())+str(fold)+'.json'), 'w') as opt_file:
-                json.dump(vars(opt), opt_file)
+
             
             torch.manual_seed(opt.manual_seed)
             model, parameters = generate_model(opt)
@@ -257,6 +180,9 @@ if __name__ == '__main__':
                     val_acc_path = "val_acc_" + str(fold+1) + ".pkl"
                     with open(os.path.join(opt.result_path, val_acc_path), "wb") as f:
                         pickle.dump(val_acc_history, f)
+                    # Save options
+                    with open(os.path.join(opt.result_path, 'opts'+str(time.time())+str(fold)+'.json'), 'w') as opt_file:
+                        json.dump(vars(opt), opt_file)
                     # Save training history
             # -------- TESTING --------
             if opt.test:

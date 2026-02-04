@@ -92,8 +92,8 @@ def make_dataset(subset, annotation_path):
         sample = {
             'video_path': video_preprocessed,
             'audio_path': audio_preprocessed,
-            'label': int(label) - 1,  # Convert to 0-indexed
-            'gender': get_gender_from_filename(filename=os.path.basename(video_path))
+            'label': int(label) - 1  # Convert to 0-indexed
+            # 'gender': get_gender_from_filename(filename=os.path.basename(video_path))
         }
         dataset.append(sample)
     
@@ -102,17 +102,17 @@ def make_dataset(subset, annotation_path):
 import pandas as pd
 
 # Load once at startup, not on every call
-demographics = pd.read_csv('/home/yeskendir/Downloads/crema-d-mirror-main/VideoDemographics.csv')
-GENDER_MAP = {
-    row['ActorID']: 0 if row['Sex'] == 'Male' else 1
-    for _, row in demographics.iterrows()
-}
+# demographics = pd.read_csv('/home/yeskendir/Downloads/crema-d-mirror-main/VideoDemographics.csv')
+# GENDER_MAP = {
+#     row['ActorID']: 0 if row['Sex'] == 'Male' else 1
+#     for _, row in demographics.iterrows()
+# }
 
-def get_gender_from_filename(filename):
-    actor_id = int(filename.split("_")[0])
-    # if actor_id == 1001:
-    #     print("Debug: ActorID is 1001")
-    return GENDER_MAP[actor_id]  # 0=male, 1=female
+# def get_gender_from_filename(filename):
+#     actor_id = int(filename.split("_")[0])
+#     # if actor_id == 1001:
+#     #     print("Debug: ActorID is 1001")
+#     return GENDER_MAP[actor_id]  # 0=male, 1=female
 
 class CREMAD(data.Dataset):
     """
@@ -159,8 +159,8 @@ class CREMAD(data.Dataset):
     def __getitem__(self, index):
         """Get a sample from the dataset"""
         target = self.data[index]['label']
-        gender = self.data[index]['gender']
-        gender = torch.tensor(gender, dtype=torch.long)
+        # gender = self.data[index]['gender']
+        # gender = torch.tensor(gender, dtype=torch.long)
         # Load video data
         if self.data_type == 'video' or self.data_type == 'audiovisual':
             path = self.data[index]['video_path']
@@ -206,7 +206,7 @@ class CREMAD(data.Dataset):
         
         # Return audiovisual data
         if self.data_type == 'audiovisual':
-            return audio_features, clip, target, gender
+            return audio_features, clip, target #  gender
 
     def __len__(self):
         return len(self.data)

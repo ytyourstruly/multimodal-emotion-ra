@@ -47,7 +47,7 @@ if __name__ == '__main__':
         
         # Get emotion labels for this dataset
         emotion_labels = get_emotion_labels(opt.dataset)
-        
+        anmotation_base = opt.annotation_path
         # ========== K-FOLD TRAINING ==========
         for fold in range(n_folds):
             print(f"\n{'='*70}")
@@ -61,10 +61,11 @@ if __name__ == '__main__':
             
             # Set annotation path based on dataset
             if opt.dataset == 'RAVDESS':
-                opt.annotation_path += '/annotations_croppad_fold' + str(fold+1) + '.txt'
+                anmotation_base += '/annotations_croppad_fold' + str(fold+1) + '.txt'
             elif opt.dataset == 'CREMAD':
-                opt.annotation_path += f'/annotations_croppad_fold{fold+1}.txt'
+                anmotation_base += f'/annotations_croppad_fold{fold+1}.txt'
             
+            opt.annotation_path = anmotation_base
             print(f"Using annotation file: {opt.annotation_path}")
             print(opt)
             
@@ -72,9 +73,7 @@ if __name__ == '__main__':
             
             torch.manual_seed(opt.manual_seed)
             model, parameters = generate_model(opt)
-
-            criterion = nn.CrossEntropyLoss().to(opt.device)
-            
+            # model.to(opt.device)
             # -------- TRAINING SETUP --------
             if not opt.no_train:
                 video_transform = transforms.Compose([
@@ -101,6 +100,46 @@ if __name__ == '__main__':
 
                 scheduler = lr_scheduler.ReduceLROnPlateau(
                     optimizer, 'min', patience=opt.lr_patience)
+                
+                # ========== OPTIMIZED CLASS WEIGHT COMPUTATION ==========
+                # Compute class weights for imbalanced dataset (memory-efficient)
+                print("Calculating class weights for training set...")
+                num_classes = len(emotion_labels)
+                class_counts = torch.zeros(num_classes, dtype=torch.long)
+                
+                # Count labels incrementally without storing all labels in memory
+                print("Computing class weights...")
+                print(type(training_data))
+                # for idx in range(len(training_data)):
+                #     label = training_data[idx][1]  # Get label without loading full sample
+                #     if isinstance(label, (torch.Tensor, np.ndarray)):
+                #         label = int(label.item() if hasattr(label, 'item') else label)
+                #     else:
+                #         label = int(label)
+                #     class_counts[label] += 1
+                if hasattr(training_data, 'data'):
+                    # CREMAD/RAVDESS datasets store metadata in .data attribute
+                    for sample in training_data.data:
+                        label = sample['label']
+                        class_counts[label] += 1
+                # Inverse-frequency weighting with numerical stability
+                class_weights = torch.zeros(num_classes, dtype=torch.float)
+                for cls_idx in range(num_classes):
+                    if class_counts[cls_idx] > 0:
+                        class_weights[cls_idx] = 1.0 / class_counts[cls_idx].float()
+                    else:
+                        class_weights[cls_idx] = 0.0  # Handle missing classes
+                
+                # Normalize (keeps loss scale stable)
+                if class_weights.sum() > 0:
+                    class_weights = class_weights / class_weights.sum() * num_classes
+                class_weights = class_weights.to(opt.device)
+
+                print("Class counts (train):", {i: class_counts[i].item() for i in range(num_classes)})
+                print("Class weights:", class_weights.cpu().numpy())
+                
+                criterion = nn.CrossEntropyLoss(weight=class_weights).to(opt.device)
+            
             
             # -------- VALIDATION SETUP --------
             if not opt.no_val:

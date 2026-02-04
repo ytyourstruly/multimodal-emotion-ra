@@ -798,7 +798,7 @@ class MultiModalCNN(nn.Module):
 
         init_feature_extractor(self.visual_model, pretr_ef)
         # FIX 1: Embedding output dim set to 16 to match the classifier input (e_dim*2 + 16)
-        self.gender_emb = nn.Embedding(2, 16)
+        # self.gender_emb = nn.Embedding(2, 16)
         e_dim = 128
         input_dim_video = 128
         input_dim_audio = 128
@@ -821,18 +821,18 @@ class MultiModalCNN(nn.Module):
 
             
         self.classifier_1 = nn.Sequential(
-                    nn.Linear(e_dim*2 + 16, num_classes), # added gender embedding
+                    nn.Linear(e_dim*2, num_classes), # added gender embedding TODO removed for now
                 )
         
             
 
-    def forward(self, x_audio, x_visual, gender):
+    def forward(self, x_audio, x_visual, gender=None):
 
         if self.fusion == 'lt':
             return self.forward_transformer(x_audio, x_visual)
 
         elif self.fusion == 'ia':
-            return self.forward_feature_2(x_audio, x_visual, gender)
+            return self.forward_feature_2(x_audio, x_visual)     
        
         elif self.fusion == 'it':
             return self.forward_feature_3(x_audio, x_visual)
@@ -866,7 +866,7 @@ class MultiModalCNN(nn.Module):
         x1 = self.classifier_1(x)
         return x1
     
-    def forward_feature_2(self, x_audio, x_visual, gender):
+    def forward_feature_2(self, x_audio, x_visual, gender=None):
         # x_audio:  [B, 10, T]          — already per-sample from dataloader
         # x_visual: [B*im_per_sample, 3, H, W] — frame-flattened in training loop for Conv2d
         # gender:   [B]                 — per-sample from dataloader, pass straight through
@@ -901,9 +901,9 @@ class MultiModalCNN(nn.Module):
         audio_pooled = x_audio.mean([-1]) #mean accross temporal dimension
         video_pooled = x_visual.mean([-1])
 
-        gender_emb = self.gender_emb(gender)  # [B, 16]
+        # gender_emb = self.gender_emb(gender)  # [B, 16]
 
-        x = torch.cat((audio_pooled, video_pooled, gender_emb), dim=1)
+        x = torch.cat((audio_pooled, video_pooled), dim=1)
         
         x1 = self.classifier_1(x)
         return x1

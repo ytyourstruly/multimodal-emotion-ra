@@ -37,7 +37,7 @@ import glob
 # CONFIGURATION
 # ---------------------------------------------------------------------------
 
-ROOT = '/home/yeskendir/Downloads/crema-d-mirror-main'          # <-- change to your root
+ROOT = 'D:\\Yeskendir_files\\crema\\crema-d-mirror'          # <-- change to your root
 
 # Set to True if your .wav files also have _croppad in the name.
 # False  → 1001_DFA_ANG_XX_croppad.npy  pairs with  1001_DFA_ANG_XX.wav
@@ -45,7 +45,7 @@ ROOT = '/home/yeskendir/Downloads/crema-d-mirror-main'          # <-- change to 
 WAV_CROPPAD = True
 
 # Flip to True for a small actor subset (fast iteration while testing features)
-SUBSET_MODE = True
+SUBSET_MODE = False
 
 RANDOM_SEED = 42
 

@@ -65,13 +65,11 @@ def get_emotion_labels(dataset_name):
         # Note: indices 1 (calm) and 7 (surprise) are not used
         return [
             "neutral",    # 0
-            "calm",       # 1 (not in CREMA-D)
             "happy",      # 2
             "sad",        # 3
             "angry",      # 4
             "fearful",    # 5
             "disgust",    # 6
-            "surprise"    # 7 (not in CREMA-D)
         ]
     else:
         raise ValueError(f"Unknown dataset: {dataset_name}")

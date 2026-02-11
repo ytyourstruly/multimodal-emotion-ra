@@ -1,4 +1,3 @@
-
 '''
 This code is based on https://github.com/okankop/Efficient-3DCNNs
 '''
@@ -21,10 +20,11 @@ def val_epoch_multimodal(epoch, data_loader, model, criterion, opt, modality='bo
     all_targets = []
 
     end_time = time.time()
-    for i, (inputs_audio, inputs_visual, targets) in enumerate(data_loader):
+    # FIX: Add gender to data loader unpacking
+    for i, (inputs_audio, inputs_visual, targets, gender) in enumerate(data_loader):
         data_time.update(time.time() - end_time)
 
-        # ----- reshape -----
+        # ----- reshape video inputs -----
         inputs_visual = inputs_visual.permute(0,2,1,3,4)
         inputs_visual = inputs_visual.reshape(
             inputs_visual.shape[0]*inputs_visual.shape[1],
@@ -32,18 +32,13 @@ def val_epoch_multimodal(epoch, data_loader, model, criterion, opt, modality='bo
             inputs_visual.shape[3],
             inputs_visual.shape[4]
         )
+        
+        # Move to device (no need for Variable wrapper in modern PyTorch)
         targets = targets.to(opt.device)
         inputs_audio = inputs_audio.to(opt.device)
         inputs_visual = inputs_visual.to(opt.device)
         gender = gender.to(opt.device)
-        # if opt.onlymale == 1:
-        #     male_mask = gender == 0
-        #     inputs_audio = inputs_audio[male_mask]
-        #     inputs_visual = inputs_visual[male_mask]
-        #     targets = targets[male_mask]
-        #     gender = gender[male_mask]
-        # if inputs_audio.shape[0] == 0:
-        #     continue
+        
         with torch.no_grad():
             outputs = model(inputs_audio, inputs_visual, gender)
             _, preds = outputs.max(1)
@@ -56,17 +51,20 @@ def val_epoch_multimodal(epoch, data_loader, model, criterion, opt, modality='bo
 
         top1.update(prec1, inputs_audio.size(0))
         losses.update(loss.data, inputs_audio.size(0))
-
+        
         batch_time.update(time.time() - end_time)
         end_time = time.time()
 
-        print(
-            'Epoch: [{0}][{1}/{2}] '
-            'Loss {loss.val:.4f} ({loss.avg:.4f}) '
-            'Prec@1 {top1.val:.5f} ({top1.avg:.5f})'.format(
-                epoch, i+1, len(data_loader), loss=losses, top1=top1
+        # Print every 10 batches (reduce console spam)
+        if i % 10 == 0:
+            print(
+                'Epoch: [{0}][{1}/{2}] '
+                'Loss {loss.val:.4f} ({loss.avg:.4f}) '
+                'Prec@1 {top1.val:.5f} ({top1.avg:.5f})'.format(
+                    epoch, i+1, len(data_loader), loss=losses, top1=top1
+                )
             )
-        )
+    
     return losses.avg.item(), top1.avg.item(), all_targets, all_preds
 
 

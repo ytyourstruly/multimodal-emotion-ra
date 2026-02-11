@@ -1,0 +1,6 @@
+Dataset: RAVDESS
+Model: multimodalcnn
+Number of folds: 5
+Mean Accuracy: 80.4167 ± 0.0000
+Individual fold accuracies:
+  Fold 1: 80.4167

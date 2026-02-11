@@ -13,7 +13,7 @@ import numpy as np
 import librosa
 import cv2
 import os
-
+import pandas as pd
 
 def video_loader_npy(video_path):
     """
@@ -92,17 +92,24 @@ def make_dataset(subset, annotation_path):
         sample = {
             'video_path': video_preprocessed,
             'audio_path': audio_preprocessed,
+<<<<<<< HEAD
             'label': int(label) - 1,  # Convert to 0-indexed
+=======
+            'label': int(label), 
+>>>>>>> 4c65ec1 (gender yes)
             'gender': get_gender_from_filename(filename=os.path.basename(video_path))
         }
         dataset.append(sample)
     
     return dataset
 
-import pandas as pd
 
+<<<<<<< HEAD
 # Load once at startup, not on every call
 demographics = pd.read_csv('/home/yeskendir/Downloads/crema-d-mirror-main/VideoDemographics.csv')
+=======
+demographics = pd.read_csv('./cremad_preprocessing/VideoDemographics.csv')
+>>>>>>> 4c65ec1 (gender yes)
 GENDER_MAP = {
     row['ActorID']: 0 if row['Sex'] == 'Male' else 1
     for _, row in demographics.iterrows()
@@ -180,7 +187,7 @@ class CREMAD(data.Dataset):
                 clip = torch.zeros(3, 15, 224, 224)
             
             if self.data_type == 'video':
-                return clip, target
+                return clip, target, gender
         
         # Load audio data
         if self.data_type == 'audio' or self.data_type == 'audiovisual':
@@ -202,11 +209,11 @@ class CREMAD(data.Dataset):
                 audio_features = np.zeros((self.n_mfcc, 100))
             
             if self.data_type == 'audio':
-                return audio_features, target
+                return audio_features, target, gender
         
         # Return audiovisual data
         if self.data_type == 'audiovisual':
-            return audio_features, clip, target, gender
+            return audio_features, clip, target, gender   
 
     def __len__(self):
         return len(self.data)

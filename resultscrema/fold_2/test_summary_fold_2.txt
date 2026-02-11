@@ -1,0 +1,4 @@
+Dataset: CREMAD
+Fold: 2
+Precision@1: 70.9524
+Loss: 0.8523

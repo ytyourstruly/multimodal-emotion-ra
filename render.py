@@ -2,8 +2,8 @@ import os
 import pickle
 import matplotlib.pyplot as plt
 
-base_dir = "D:/Yeskendir_files/resultscrema"
-num_folds = 4
+base_dir = "D:/Yeskendir_files/multimodal-emotion-recognition/resultscrema"
+num_folds = 3
 
 for fold in range(1, num_folds + 1):
 

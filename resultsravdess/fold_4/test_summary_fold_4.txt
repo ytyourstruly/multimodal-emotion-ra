@@ -1,0 +1,4 @@
+Dataset: RAVDESS
+Fold: 4
+Precision@1: 78.1667
+Loss: 0.6891

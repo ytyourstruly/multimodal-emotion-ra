@@ -39,17 +39,16 @@ def make_dataset(subset, annotation_path):
         filename, audiofilename, label, trainvaltest = line.split(';')        
         if trainvaltest.rstrip() != subset:
             continue
-        gender = get_gender_from_filename(filename)        
+        # gender = get_gender_from_filename(filename)        
         sample = {'video_path': filename,                       
                   'audio_path': audiofilename, 
-                  'label': int(label)-1,
-                  'gender': gender}
+                  'label': int(label)-1,}
         dataset.append(sample)
     return dataset 
        
-def get_gender_from_filename(filename):
-    part = filename.split('.')[0].split('-')
-    return 1 if int(part[6])%2 == 0 else 0  # 0=male, 1=female
+# def get_gender_from_filename(filename):
+#     part = filename.split('.')[0].split('-')
+#     return 1 if int(part[6])%2 == 0 else 0  # 0=male, 1=female
 
 class RAVDESS(data.Dataset):
     def __init__(self,                 
@@ -65,7 +64,7 @@ class RAVDESS(data.Dataset):
 
     def __getitem__(self, index):
         target = self.data[index]['label']
-        gender = self.data[index]['gender']
+        # gender = self.data[index]['gender']
         if self.data_type == 'video' or self.data_type == 'audiovisual':        
             path = self.data[index]['video_path']
             clip = self.loader(path)
@@ -76,7 +75,7 @@ class RAVDESS(data.Dataset):
             clip = torch.stack(clip, 0).permute(1, 0, 2, 3) 
             
             if self.data_type == 'video':
-                return clip, target, gender
+                return clip, target
             
         if self.data_type == 'audio' or self.data_type == 'audiovisual':
             path = self.data[index]['audio_path']
@@ -90,9 +89,9 @@ class RAVDESS(data.Dataset):
             audio_features = mfcc 
 
             if self.data_type == 'audio':
-                return audio_features, target, gender
+                return audio_features, target
         if self.data_type == 'audiovisual':
-            return audio_features, clip, target, gender
+            return audio_features, clip, target
 
     def __len__(self):
         return len(self.data)
